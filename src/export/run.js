@@ -4,6 +4,7 @@ import { toHtml } from './html.js';
 import { toJson } from './json.js';
 import { toMarkdown } from './markdown.js';
 import { toPdf } from './pdf.js';
+import { isImageEvidence } from '../core/model.js';
 
 /** @typedef {'pdf' | 'html' | 'csv' | 'json' | 'markdown'} ExportFormat */
 
@@ -55,7 +56,14 @@ export async function buildExport(format, scope, storage) {
       const blob = await storage.getBlob(e.evidence.blobKey);
       if (!blob) throw new Error(`Evidence for “${e.title}” is missing from storage`);
       media.set(e.id, { bytes: new Uint8Array(await blob.arrayBuffer()), mime: blob.type || e.evidence.mime });
-      if (format === 'pdf') jpegs.set(e.id, await toJpeg(blob));
+      if (format === 'pdf' && isImageEvidence(e.evidence)) {
+        // An uploaded image the browser can't decode (e.g. SVG) is listed by name instead of failing the export.
+        try {
+          jpegs.set(e.id, await toJpeg(blob));
+        } catch (err) {
+          if (e.evidence.kind !== 'upload') throw err;
+        }
+      }
     }
   }
   return WRITERS[format]({ ...scope, media, jpegs });

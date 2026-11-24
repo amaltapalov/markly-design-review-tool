@@ -9,6 +9,8 @@ export const icons = {
   imageSmall: svg('<rect x="3.5" y="3.5" width="17" height="17"/><circle cx="9" cy="9" r="1.6"/><path d="M20.5 15.5l-5-5L5 21"/>', 18),
   play: svg('<path d="M6 4l14 8-14 8z"/>'),
   playSmall: svg('<path d="M6 4l14 8-14 8z"/>', 18),
+  upload: svg('<path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v5h16v-5"/>', 18),
+  fileSmall: svg('<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/>', 18),
   chevronDown: svg('<path d="M6 9l6 6 6-6"/>', 18),
   chevronUp: svg('<path d="M6 15l6-6 6 6"/>', 18),
   goTo: svg('<path d="M7 17L17 7M9 7h8v8"/>', 18),

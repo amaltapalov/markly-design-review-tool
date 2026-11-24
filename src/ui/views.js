@@ -1,7 +1,7 @@
 // Pure view functions: (state, actions) -> vnode. No state lives here.
 import { h } from './dom.js';
 import { icons } from './icons.js';
-import { CATEGORIES, PRIORITIES } from '../core/model.js';
+import { CATEGORIES, PRIORITIES, evidenceKindLabel, isImageEvidence, isVideoEvidence } from '../core/model.js';
 import { countsByCategory, groupByScreen, reorderEntry, screenOf, visibleEntries } from '../core/ledger.js';
 import { validateDraft } from '../core/validate.js';
 import { decisions } from '../core/decisions.js';
@@ -46,7 +46,18 @@ export function evidenceSummary(ev, now) {
   const masked = maskSummary(ev.masking);
   const tail = `${formatBytes(ev.bytes)} · ${formatAgo(ev.capturedAt, now)}${masked ? ` · ${masked}` : ''}`;
   if (ev.kind === 'gif') return `Clip attached · GIF · ${secs(ev.durationMs ?? 0)} · ${tail}`;
+  if (ev.kind === 'upload') return `${evidenceKindLabel(ev)} attached · ${ev.name ?? 'file'} · ${tail} · not masked`;
   return `Screenshot attached · ${ev.width}×${ev.height} · ${tail}`;
+}
+
+/** @param {import('../core/model.js').Evidence} ev */
+const evidenceGlyph = (ev) => (ev.kind === 'gif' || isVideoEvidence(ev) ? icons.playSmall : isImageEvidence(ev) ? icons.imageSmall : icons.fileSmall);
+
+/** Inline preview: image, video, or a download link for other files. */
+function attachmentPreview(/** @type {import('../core/model.js').Evidence} */ ev, /** @type {string} */ url, /** @type {string} */ cls, /** @type {string} */ label) {
+  if (isImageEvidence(ev)) return h('img', { class: cls, src: url, alt: label });
+  if (isVideoEvidence(ev)) return h('video', { class: cls, src: url, controls: true, 'aria-label': label });
+  return h('a', { class: cls, href: url, download: ev.name ?? 'file' }, `Download ${ev.name ?? 'file'}`);
 }
 
 /** @param {AppState} s @param {Actions} a */
@@ -101,7 +112,7 @@ function dragGhost(s) {
         { class: 'mk-item-meta' },
         h('span', { class: 'mk-cat' }, e.category),
         e.priority ? h('span', { class: 'mk-prio', 'data-p': e.priority }, e.priority) : null,
-        e.evidence ? h('span', { class: 'mk-glyph', html: e.evidence.kind === 'gif' ? icons.playSmall : icons.imageSmall }) : null,
+        e.evidence ? h('span', { class: 'mk-glyph', html: evidenceGlyph(e.evidence) }) : null,
       ),
     ),
   );
@@ -361,9 +372,6 @@ function row(s, a, e, n) {
   const editing = s.editing?.id === e.id;
   const locked = !!s.editing; // resolve the edit before move/delete (PRD §11)
   const ev = e.evidence;
-  // Move up/down stays within this entry's screen (moveEntry), so the ends are this screen's ends.
-  const shown = visibleEntries(s.session.entries, s.filters, screenOf(e));
-  const pos = shown.indexOf(e);
   const elsewhere = screenOf(e) !== s.path;
   const dragging = s.drag?.id === e.id && s.drag.moved; // this row is the placeholder where the drop lands
   const actionBtn = (/** @type {string} */ action, /** @type {string} */ label, /** @type {string} */ svg, /** @type {boolean} */ disabled, /** @type {() => void} */ fn, extra = '') =>
@@ -390,7 +398,6 @@ function row(s, a, e, n) {
     h(
       'div',
       { class: 'mk-item-head' },
-      // Pointer-only: keyboard users reorder with Move up / Move down.
       h('span', {
         class: 'mk-grip',
         'aria-hidden': 'true',
@@ -418,8 +425,8 @@ function row(s, a, e, n) {
           ? h('span', {
               class: 'mk-glyph',
               role: 'img',
-              'aria-label': ev.kind === 'gif' ? 'Clip attached' : 'Screenshot attached',
-              html: ev.kind === 'gif' ? icons.playSmall : icons.imageSmall,
+              'aria-label': `${evidenceKindLabel(ev)} attached`,
+              html: evidenceGlyph(ev),
             })
           : null,
         h('span', { class: 'mk-spacer' }),
@@ -427,13 +434,11 @@ function row(s, a, e, n) {
           'span',
           { class: 'mk-actions', role: 'group', 'aria-label': `Actions for entry ${n}` },
           actionBtn('edit', 'Edit feedback', icons.edit, locked, () => a.startEdit(e.id)),
-          decisions.reorder === 'buttons' ? actionBtn('up', 'Move up', icons.arrowUp, locked || pos <= 0, () => a.move(e.id, -1)) : null,
-          decisions.reorder === 'buttons' ? actionBtn('down', 'Move down', icons.arrowDown, locked || pos === shown.length - 1, () => a.move(e.id, 1)) : null,
           actionBtn('delete', 'Delete feedback', icons.trash, locked, () => a.requestDelete(e.id), ' mk-action--danger'),
         ),
       ),
     ),
-    open ? (editing ? editForm(s, a, e) : detail(s, e)) : null,
+    open ? (editing ? editForm(s, a, e) : detail(s, a, e)) : null,
   );
 }
 
@@ -526,7 +531,7 @@ function editForm(s, a, e) {
       ' · Inspected: ',
       h('strong', null, e.anchor.label),
     ),
-    e.evidence && preview ? h('img', { class: 'mk-preview', src: preview, alt: '' }) : null,
+    e.evidence && preview ? attachmentPreview(e.evidence, preview, 'mk-preview', `${evidenceKindLabel(e.evidence)} for entry: ${e.title}`) : null,
     h(
       'div',
       { class: 'mk-row mk-edit-actions' },
@@ -536,8 +541,8 @@ function editForm(s, a, e) {
   );
 }
 
-/** Read state: plain text, nothing that looks editable (UI_SPEC C4). @param {AppState} s @param {Entry} e */
-function detail(s, e) {
+/** Read state: plain text, nothing that looks editable (UI_SPEC C4). @param {AppState} s @param {Actions} a @param {Entry} e */
+function detail(s, a, e) {
   const preview = s.previews.get(e.id);
   return h(
     'div',
@@ -560,8 +565,27 @@ function detail(s, e) {
       screenOf(e) !== s.path ? ` · on ${screenOf(e)}` : null,
     ),
     e.evidence && preview
-      ? h('img', { class: 'mk-preview', src: preview, alt: e.evidence.kind === 'gif' ? `Clip for entry: ${e.title}` : `Screenshot for entry: ${e.title}` })
+      ? openablePreview(e.evidence, preview, `${evidenceKindLabel(e.evidence)} for entry: ${e.title}`, () => a.openEvidenceTab(e.id))
       : null,
+  );
+}
+
+/** Image or video preview with a badge that opens it in a new tab; other files stay plain downloads. */
+function openablePreview(/** @type {import('../core/model.js').Evidence} */ ev, /** @type {string} */ url, /** @type {string} */ label, /** @type {() => void} */ onOpen) {
+  if (!isImageEvidence(ev) && !isVideoEvidence(ev)) return attachmentPreview(ev, url, 'mk-preview', label);
+  if (isImageEvidence(ev)) {
+    return h(
+      'button',
+      { class: 'mk-preview-frame mk-preview-open', type: 'button', 'aria-label': `Open ${label} in a new tab`, onClick: onOpen },
+      attachmentPreview(ev, url, 'mk-preview', label),
+      h('span', { class: 'mk-open-badge', 'aria-hidden': 'true', html: icons.goTo }),
+    );
+  }
+  return h(
+    'div',
+    { class: 'mk-preview-frame' },
+    attachmentPreview(ev, url, 'mk-preview', label),
+    h('button', { class: 'mk-open-badge', type: 'button', 'aria-label': `Open ${label} in a new tab`, onClick: onOpen, html: icons.goTo }),
   );
 }
 
@@ -586,7 +610,7 @@ function creation(s, a) {
       'header',
       { class: 'mk-header' },
       h('h2', null, h('span', { class: 'mk-badge', 'data-draft': '' }, String(number)), 'New feedback'),
-      h('button', { class: 'mk-icon-btn', 'aria-label': 'Cancel new feedback', onClick: a.cancelDraft, html: icons.closeSmall }),
+      h('button', { class: 'mk-icon-btn', 'aria-label': 'Cancel new feedback', onClick: a.cancelDraft, html: icons.close }),
     ),
     h('div', { class: 'mk-band' }, 'Inspected ', h('strong', null, d.anchor.label), d.anchor.text ? ` · “${d.anchor.text}”` : null),
     h(
@@ -628,7 +652,9 @@ function creation(s, a) {
             h(
               'div',
               { class: 'mk-band mk-evidence-band' },
-              h('img', { class: 'mk-thumb', src: d.evidence.previewUrl, alt: '' }),
+              isImageEvidence(d.evidence)
+                ? h('img', { class: 'mk-thumb', src: d.evidence.previewUrl, alt: '' })
+                : h('span', { class: 'mk-glyph', html: evidenceGlyph(d.evidence) }),
               h('span', null, evidenceSummary(d.evidence, s.now)),
             ),
           )
@@ -670,7 +696,7 @@ function evidenceSection(s, a, d, busy) {
       : [
           h(
             'div',
-            { class: 'mk-row', role: 'group', 'aria-labelledby': 'mk-ev-l' },
+            { class: 'mk-row mk-evidence-row', role: 'group', 'aria-labelledby': 'mk-ev-l' },
             h(
               'button',
               { class: 'mk-btn mk-btn--secondary', 'aria-pressed': String(kind === 'screenshot'), disabled: busy, onClick: a.screenshot },
@@ -689,9 +715,18 @@ function evidenceSection(s, a, d, busy) {
               icon(icons.play),
               kind === 'gif' ? 'Retake video' : `Video ${decisions.maxClipSeconds}s`,
             ),
+            h(
+              'button',
+              { class: 'mk-btn mk-btn--secondary', 'aria-pressed': String(kind === 'upload'), disabled: busy, onClick: a.upload },
+              icon(icons.upload),
+              kind === 'upload' ? 'Replace file' : 'Upload file',
+            ),
           ),
           s.hostWidth < MIN_CLIP_WIDTH
             ? h('p', { id: 'mk-narrow', class: 'mk-meta', style: 'margin:8px 0 0' }, 'Widen the window to record a clip: the panel would cover the page.')
+            : null,
+          kind === 'upload'
+            ? h('p', { class: 'mk-meta', style: 'margin:8px 0 0' }, 'Uploaded files are not masked. Check them for personal or patient data. ', h('button', { class: 'mk-link', onClick: a.removeUpload }, 'Remove file'))
             : null,
           !d.evidence && !d.evidenceSkipped
             ? h('p', { style: 'margin:8px 0 0' }, h('button', { class: 'mk-link', onClick: a.skipEvidence }, 'Continue without evidence'))

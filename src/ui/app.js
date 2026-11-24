@@ -31,6 +31,7 @@ import { storageReason } from '../core/errors.js';
 import { labelFor, textFor } from '../core/anchor.js';
 import { exportScope } from '../export/scope.js';
 import { FORMATS, buildExport, download } from '../export/run.js';
+import { openEvidenceTab } from './viewer.js';
 import { leaveHandoff, takeHandoff } from './handoff.js';
 
 /** @typedef {import('../core/model.js').Session} Session */
@@ -611,6 +612,8 @@ export class Markly {
     /** @type {import('../media/mask.js').Rect[]} */
     let rects = [];
     let viewportWidth = window.innerWidth;
+    /** @type {{ fx: number, fy: number } | null} */
+    let pinAt = null;
     const prepare = async () => {
       if (token !== this.captureToken) throw new DOMException('Capture cancelled', 'AbortError');
       s.capture = { phase: 'shooting' };
@@ -620,6 +623,8 @@ export class Markly {
       // Measure sensitive areas at the moment of capture; the page doesn't move in between.
       rects = scanner.measure();
       viewportWidth = window.innerWidth;
+      const draftPin = this.computePins().find((p) => p.draft && !p.edge);
+      pinAt = draftPin ? { fx: draftPin.x / viewportWidth, fy: draftPin.y / window.innerHeight } : null;
     };
     /** @type {Blob | null} */
     let blob = null;
@@ -639,7 +644,7 @@ export class Markly {
         const shot = await maskedScreenshot(blob, rects, viewportWidth, decisions.screenshotMaxWidth);
         blob = null; // drop the unmasked capture
         /** @type {PendingMedia} */
-        const media = { kind: 'screenshot', ...shot, manual: [], blob: new Blob(), previewUrl: '' };
+        const media = { kind: 'screenshot', ...shot, manual: [], blob: new Blob(), previewUrl: '', pin: pinAt };
         media.blob = await renderPending(media);
         media.previewUrl = URL.createObjectURL(media.blob);
         s.capture = { phase: 'ready', media };
@@ -649,6 +654,80 @@ export class Markly {
         s.notice = { text: `Couldn't use that screenshot (${/** @type {Error} */ (err).message}). Your draft is unchanged.` };
       }
     }
+    this.schedule();
+  }
+
+  /** Opens the system file picker. Any file type is accepted; the size limit is checked when it's chosen. */
+  upload() {
+    const s = this.state;
+    if (!s.draft || !this.root || (s.capture && s.capture.phase !== 'ready')) return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.hidden = true;
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      input.remove();
+      if (file) this.attachFile(file);
+    });
+    input.addEventListener('cancel', () => input.remove());
+    this.root.append(input);
+    input.click();
+  }
+
+  /** @param {File} file */
+  async attachFile(file) {
+    const s = this.state;
+    const d = s.draft;
+    if (!d) return;
+    if (file.size === 0) {
+      s.notice = { text: `${file.name} is empty. Choose another file.` };
+      this.schedule();
+      return;
+    }
+    if (file.size > decisions.maxEvidenceBytes) {
+      s.notice = { text: `${file.name} is ${(file.size / 1048576).toFixed(1)} MB, over the ${decisions.maxEvidenceBytes / 1048576} MB limit. Choose a smaller file.` };
+      this.schedule();
+      return;
+    }
+    const mime = file.type || 'application/octet-stream';
+    let width = 0;
+    let height = 0;
+    if (mime.startsWith('image/')) {
+      try {
+        const bitmap = await createImageBitmap(file);
+        width = bitmap.width;
+        height = bitmap.height;
+        bitmap.close();
+      } catch {
+        // SVG and other non-raster images have no pixel size; the file is still kept.
+      }
+    }
+    // The draft may have been closed while the file was read.
+    if (s.draft !== d) return;
+    if (d.evidence) URL.revokeObjectURL(d.evidence.previewUrl);
+    d.evidence = {
+      kind: 'upload',
+      name: file.name,
+      mime,
+      width,
+      height,
+      bytes: file.size,
+      capturedAt: new Date().toISOString(),
+      masking: { auto: 0, manual: 0, rules: 'none' },
+      blob: file,
+      previewUrl: URL.createObjectURL(file),
+    };
+    s.announce = `${file.name} attached. Uploaded files are not masked; check them before saving.`;
+    this.focusNext = d.category ? null : '[role=radio]';
+    this.schedule();
+  }
+
+  removeUpload() {
+    const d = this.state.draft;
+    if (!d?.evidence || d.evidence.kind !== 'upload') return;
+    URL.revokeObjectURL(d.evidence.previewUrl);
+    d.evidence = null;
+    this.focusNext = '[aria-pressed]';
     this.schedule();
   }
 
@@ -822,6 +901,18 @@ export class Markly {
       // Preview is optional; metadata still shows what's attached.
     }
     this.schedule();
+  }
+
+  /** @param {string} id */
+  showEvidenceTab(id) {
+    const i = this.state.session.entries.findIndex((x) => x.id === id);
+    const e = this.state.session.entries[i];
+    if (!e) return;
+    openEvidenceTab(this.platform.storage, e, i + 1).then((result) => {
+      if (result === 'blocked') this.state.notice = { text: 'Your browser blocked the new tab. Allow pop-ups for this site and try again.' };
+      if (result === 'missing') this.state.notice = { text: 'That evidence is missing from storage.' };
+      this.schedule();
+    });
   }
 
   /* ---------------- manage saved entries (D4) ---------------- */
@@ -1186,6 +1277,8 @@ export class Markly {
       /** Add starts the keyboard picker; clicking an element still works as before. */
       add: () => this.guardEdit(() => (s().picking ? this.stopPicking('Picking cancelled.') : this.startPicking())),
       exit: () => this.requestExit(),
+      /** @param {string} id */
+      openEvidenceTab: (id) => this.showEvidenceTab(id),
       /** @param {string} name */
       setReviewer: (name) => {
         s().session = setReviewer(s().session, name);
@@ -1339,6 +1432,8 @@ export class Markly {
       save: () => this.save(),
       screenshot: () => this.screenshot(),
       video: () => this.video(),
+      upload: () => this.upload(),
+      removeUpload: () => this.removeUpload(),
       skipEvidence: () => {
         const d = s().draft;
         if (!d) return;
@@ -1380,6 +1475,7 @@ export class Markly {
           height: m.height,
           bytes: m.blob.size,
           ...(m.kind === 'gif' ? { durationMs: m.durationMs, frames: m.frames } : {}),
+          ...(m.pin ? { pin: m.pin } : {}),
           capturedAt: new Date().toISOString(),
           masking: { auto: m.autoMasked, manual: m.manual.length, rules: MASK_RULES_VERSION },
           blob: m.blob,

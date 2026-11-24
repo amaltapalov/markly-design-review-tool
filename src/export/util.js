@@ -1,5 +1,7 @@
 // Helpers shared by the exporters. Pure; runs in the browser and in Node tests.
 
+import { evidenceKindLabel } from '../core/model.js';
+
 /** @typedef {import('../core/model.js').Entry} Entry */
 
 /**
@@ -69,6 +71,10 @@ export function filenameFor(ctx, ext) {
 export function evidenceLabel(e) {
   const ev = e.evidence;
   if (!ev) return 'No evidence attached';
+  if (ev.kind === 'upload') {
+    const dims = ev.width ? ` · ${ev.width}×${ev.height}` : '';
+    return `${evidenceKindLabel(ev)} · ${ev.name ?? 'file'}${dims} · not masked`;
+  }
   const n = (ev.masking?.auto ?? 0) + (ev.masking?.manual ?? 0);
   const masked = n ? ` · ${n} ${n === 1 ? 'area' : 'areas'} masked` : '';
   if (ev.kind === 'gif') return `GIF clip · ${Math.round((ev.durationMs ?? 0) / 100) / 10}s · ${ev.width}×${ev.height}${masked}`;
@@ -78,8 +84,15 @@ export function evidenceLabel(e) {
 /** File extension for an evidence mime type. @param {string} mime */
 export const extFor = (mime) => (mime === 'image/gif' ? 'gif' : mime === 'image/jpeg' ? 'jpg' : 'png');
 
-/** "01-screenshot.png" @param {Entry} e @param {number} n @param {MediaItem} m */
-export const mediaName = (e, n, m) => `${String(n).padStart(2, '0')}-${e.evidence?.kind === 'gif' ? 'clip' : 'screenshot'}.${extFor(m.mime)}`;
+/** Zip-safe file name from a user's file name. @param {string | undefined} name */
+export const safeName = (name) => (name || 'file').replace(/[^a-z0-9._-]+/gi, '-').replace(/^-+/, '').slice(0, 80) || 'file';
+
+/** "01-screenshot.png", or "01-report.pdf" for uploads. @param {Entry} e @param {number} n @param {MediaItem} m */
+export function mediaName(e, n, m) {
+  const num = String(n).padStart(2, '0');
+  if (e.evidence?.kind === 'upload') return `${num}-${safeName(e.evidence.name)}`;
+  return `${num}-${e.evidence?.kind === 'gif' ? 'clip' : 'screenshot'}.${extFor(m.mime)}`;
+}
 
 /** Standard CRC-32 (zip). */
 const CRC_TABLE = (() => {

@@ -15,6 +15,7 @@ import { canvasToBlob } from './capture.js';
  * @property {number} autoMasked
  * @property {Rect[]} manual
  * @property {Blob} blob            current rendering (auto + manual masks)
+ * @property {{ fx: number, fy: number } | null} [pin]  feedback pin at capture time, as fractions of the viewport
  * @property {string} previewUrl
  * @property {HTMLCanvasElement} [base]    screenshot: auto-masked pixels
  * @property {Uint8Array[]} [indexed]      clip: auto-masked palette frames

@@ -31,19 +31,36 @@ export const PRIORITIES = Object.freeze(['High', 'Medium', 'Low']);
 
 /**
  * Metadata for an attachment. The bytes live in storage under `blobKey`.
+ * `upload` is a file chosen from the computer: stored as-is, never masked by Markly.
  * @typedef {object} Evidence
- * @property {'screenshot' | 'gif'} kind
+ * @property {'screenshot' | 'gif' | 'upload'} kind
  * @property {string} mime
- * @property {number} width
+ * @property {number} width        0 when unknown (non-image uploads)
  * @property {number} height
  * @property {number} bytes
  * @property {string} capturedAt   ISO timestamp
+ * @property {string} [name]       uploads only: original file name
  * @property {number} [durationMs] clips only
  * @property {number} [frames]     clips only
  * @property {string} [blobKey]    set once committed to storage
+ * @property {{ fx: number, fy: number }} [pin]  screenshots: feedback pin as fractions of the capture
  * @property {{ auto: number, manual: number, rules: string }} [masking]
  *   areas painted over before storage: automatic (fields and patterns) and drawn by the reviewer
  */
+
+/** @param {Evidence} ev */
+export const isVideoEvidence = (ev) => ev.kind === 'upload' && ev.mime.startsWith('video/');
+
+/** Images render inline: screenshots, clips and uploaded images. @param {Evidence} ev */
+export const isImageEvidence = (ev) => ev.kind !== 'upload' || ev.mime.startsWith('image/');
+
+/** Short noun for an attachment: "Clip", "Screenshot", "Image", "Video" or "File". @param {Evidence} ev */
+export function evidenceKindLabel(ev) {
+  if (ev.kind === 'gif') return 'Clip';
+  if (ev.kind === 'screenshot') return 'Screenshot';
+  if (isVideoEvidence(ev)) return 'Video';
+  return isImageEvidence(ev) ? 'Image' : 'File';
+}
 
 /**
  * A committed ledger entry. Display number is its position in `entries`, not stored.

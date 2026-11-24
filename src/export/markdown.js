@@ -1,5 +1,6 @@
 // Markdown: structured and human-readable. With media it's a zip (review.md + media/), else a single .md.
 import { evidenceLabel, filenameFor, formatDate, mediaName, utf8 } from './util.js';
+import { evidenceKindLabel, isImageEvidence } from '../core/model.js';
 import { zip } from './zip.js';
 
 /** Escape Markdown syntax so findings render literally. @param {string} s */
@@ -28,7 +29,7 @@ export function toMarkdown({ entries, context, media }) {
       `- **Priority:** ${e.priority ?? 'Not set'}`,
       `- **Page:** <${e.page.url}>`,
       `- **Element:** \`${e.anchor.selector.replace(/`/g, "'")}\`${e.anchor.text ? ` “${mdEscape(e.anchor.text)}”` : ''}`,
-      `- **Evidence:** ${evidenceLabel(e)}`,
+      `- **Evidence:** ${mdEscape(evidenceLabel(e))}`,
       '',
       ...e.description.split('\n').map(mdEscape),
       '',
@@ -36,7 +37,8 @@ export function toMarkdown({ entries, context, media }) {
     if (e.evidence && m) {
       const name = mediaName(e, n, m);
       files.push({ name: `media/${name}`, bytes: m.bytes });
-      out.push(`![${e.evidence.kind === 'gif' ? 'Clip' : 'Screenshot'} for entry ${n}](media/${name})`, '');
+      const label = `${evidenceKindLabel(e.evidence)} for entry ${n}`;
+      out.push(isImageEvidence(e.evidence) ? `![${label}](media/${name})` : `[${label}: ${mdEscape(e.evidence.name ?? 'file')}](media/${name})`, '');
     }
   });
   const md = utf8(out.join('\n'));

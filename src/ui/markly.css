@@ -535,6 +535,34 @@ button {
   border: 1px solid var(--mk-border);
   background: var(--mk-band);
 }
+.mk-preview-frame {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+.mk-preview-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.mk-preview-open:focus-visible {
+  outline: 2px solid var(--mk-ink);
+  outline-offset: 2px;
+}
+.mk-preview-frame > .mk-open-badge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  padding: 4px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
 .mk-meta {
   color: var(--mk-text-muted);
   font-size: var(--mk-text-sm);
@@ -729,6 +757,16 @@ button {
 .mk-sheet .mk-row {
   justify-content: flex-end;
 }
+.mk-evidence-row {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+.mk-evidence-row .mk-btn {
+  width: 100%;
+  white-space: normal;
+  padding-inline: var(--mk-space-2);
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .mk-toast {
@@ -921,6 +959,71 @@ button {
 .mk-hide {
   font-size: var(--mk-text-md);
   min-height: var(--mk-icon-btn);
+}
+
+/* ---------- Hover states ---------- */
+.mk-btn--primary:not(:disabled):hover {
+  background: #333;
+  border-color: #333;
+}
+.mk-btn--secondary:not(:disabled):hover {
+  background: var(--mk-band);
+  border-color: var(--mk-ink);
+}
+.mk-btn--secondary[aria-pressed="true"]:not(:disabled):hover {
+  background: #333;
+  border-color: #333;
+}
+.mk-btn--danger:not(:disabled):hover {
+  filter: brightness(0.9);
+}
+.mk-btn--text:not(:disabled):hover,
+.mk-icon-btn:not(:disabled):hover,
+.mk-hide:not(:disabled):hover {
+  background: var(--mk-band);
+}
+.mk-dock .mk-icon-btn[aria-pressed="true"]:hover {
+  background: #333;
+}
+.mk-link:hover {
+  color: var(--mk-text);
+  text-decoration-thickness: 2px;
+}
+.mk-chip:not([aria-pressed="true"]):hover {
+  background: var(--mk-band);
+}
+.mk-chip[aria-pressed="true"]:hover {
+  background: #333;
+}
+.mk-segmented button:not([aria-checked="true"]):hover {
+  background: var(--mk-band);
+}
+.mk-segmented button[aria-checked="true"]:hover {
+  background: #333;
+  border-color: #333;
+}
+.mk-item:not([data-editing]):hover {
+  background: #fafafa;
+}
+.mk-item-toggle:hover .mk-item-title {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.mk-format:hover > span,
+.mk-check:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.mk-input:hover,
+.mk-textarea:hover,
+.mk-select:hover {
+  border-color: var(--mk-text-muted);
+}
+.mk-pin:not([data-draft]):hover {
+  background: #333;
+}
+.mk-fab:hover {
+  box-shadow: 0 12px 32px rgba(17, 17, 17, 0.35);
 }
 .mk-root[data-collapsed] .mk-frame {
   right: 0;

@@ -1,5 +1,6 @@
 // HTML: the readable report as one self-contained file; media embedded so GIFs animate offline.
 import { dataUrl, escapeHtml as x, evidenceLabel, filenameFor, formatDate, utf8 } from './util.js';
+import { evidenceKindLabel, isImageEvidence, isVideoEvidence } from '../core/model.js';
 
 const CSS = `
 *{box-sizing:border-box}body{margin:0;font:15px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#111;background:#fff;letter-spacing:-.01em}
@@ -13,15 +14,30 @@ figure{margin:0}img{display:block;max-width:100%;border:1px solid #d6d6d6}figcap
 code{font:13px ui-monospace,Menlo,monospace;background:#f2f2f2;padding:1px 4px}@media print{article{break-inside:avoid}}
 `;
 
+/**
+ * @param {import('../core/model.js').Evidence} ev @param {import('./util.js').MediaItem} m @param {string} alt
+ */
+function attachmentHtml(ev, m, alt) {
+  const src = dataUrl(m);
+  if (isImageEvidence(ev)) {
+    const size = ev.width ? ` width="${ev.width}" height="${ev.height}"` : '';
+    return `<img src="${src}" alt="${x(alt)}"${size} loading="lazy">`;
+  }
+  if (isVideoEvidence(ev)) return `<video src="${src}" controls preload="metadata" aria-label="${x(alt)}"></video>`;
+  return `<p><a href="${src}" download="${x(ev.name ?? 'file')}">Download ${x(ev.name ?? 'file')}</a></p>`;
+}
+
 /** @param {import('./util.js').ExportInput} input @returns {import('./util.js').ExportFile} */
 export function toHtml({ entries, context, media }) {
   const items = entries
     .map((e, i) => {
       const n = i + 1;
       const m = media.get(e.id);
+      const ev = e.evidence;
+      const alt = ev ? `${evidenceKindLabel(ev)} for entry ${n}: ${e.title}` : '';
       const fig =
-        e.evidence && m
-          ? `<figure><img src="${dataUrl(m)}" alt="${x(`${e.evidence.kind === 'gif' ? 'Clip' : 'Screenshot'} for entry ${n}: ${e.title}`)}" width="${e.evidence.width}" height="${e.evidence.height}" loading="lazy"><figcaption>${x(evidenceLabel(e))}</figcaption></figure>`
+        ev && m
+          ? `<figure>${attachmentHtml(ev, m, alt)}<figcaption>${x(evidenceLabel(e))}</figcaption></figure>`
           : `<p class="scope">${x(evidenceLabel(e))}</p>`;
       return `<article id="entry-${n}">
 <h2><span class="n">${n}</span><span>${x(e.title)}</span></h2>

@@ -22,7 +22,7 @@ export function toCsv({ entries, context }) {
       `Page: ${e.page.url}`,
       `Element: ${e.anchor.label}${e.anchor.text ? ` “${e.anchor.text}”` : ''} (${e.anchor.selector})`,
       `Category: ${e.category}`,
-      e.evidence ? `Evidence: ${e.evidence.kind === 'gif' ? 'GIF clip' : 'screenshot'} not included in CSV; it stays in Markly.` : 'Evidence: none attached.',
+      e.evidence ? `Evidence: ${e.evidence.kind === 'gif' ? 'GIF clip' : e.evidence.kind === 'upload' ? 'file' : 'screenshot'} not included in CSV; it stays in Markly.` : 'Evidence: none attached.',
       `Markly entry ${i + 1} · ${context.reviewer} · ${formatDate(context.exportedAt)}`,
     ];
     return [
