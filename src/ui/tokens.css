@@ -1,0 +1,46 @@
+/* Markly design tokens. Values read from the reference boards (docs/UI_SPEC.md); confirm against Figma. */
+:host {
+  --mk-ink: #111111;
+  --mk-surface: #ffffff;
+  --mk-band: #f2f2f2;
+  --mk-border: #d6d6d6;
+  --mk-border-strong: #111111;
+  --mk-text: #111111;
+  --mk-text-muted: #6b6b6b;
+  --mk-disabled-bg: #c8c8c8;
+  --mk-disabled-fg: #ffffff;
+  --mk-danger: #e0262b;
+  --mk-danger-text: #c4161c;
+  --mk-success: #2e8b3a;
+  --mk-warning: #f08c00;
+  --mk-prio-high: #d62828;
+  --mk-prio-medium: #b35c00; /* UI_SPEC C8: darkened from #e67e00 for 4.5:1 */
+  --mk-prio-low: #2e7d32;
+  --mk-scrim: rgba(17, 17, 17, 0.45);
+  --mk-focus: #1a56db;
+
+  --mk-radius: 0;
+  --mk-radius-pill: 999px;
+
+  --mk-drawer-w: 380px;
+  --mk-font: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --mk-text-xs: 12px;
+  --mk-text-sm: 13px;
+  --mk-text-md: 14px;
+  --mk-text-lg: 16px;
+  --mk-text-xl: 28px;
+  --mk-tracking: -0.01em;
+
+  --mk-space-1: 4px;
+  --mk-space-2: 8px;
+  --mk-space-3: 12px;
+  --mk-space-4: 16px;
+  --mk-space-5: 20px;
+  --mk-space-6: 24px;
+
+  --mk-control-h: 36px;
+  --mk-icon-btn: 28px;
+  --mk-pin: 24px;
+  --mk-pin-ring: 44px;
+  --mk-z: 2147483647;
+}

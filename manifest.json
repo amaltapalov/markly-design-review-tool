@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Markly (prototype)",
+  "version": "0.1.0",
+  "description": "Capture review findings on live pages. Prototype build; not for sensitive content.",
+  "action": {
+    "default_title": "Start or exit Markly review"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+Shift+M" }
+    }
+  },
+  "background": {
+    "service_worker": "shells/extension/background.js",
+    "type": "module"
+  },
+  "permissions": ["activeTab", "scripting", "unlimitedStorage"],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/*", "src/*/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workspace · Group C (Markly demo host)</title>
+    <link rel="stylesheet" href="/demo/demo.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="logo" aria-hidden="true"></div>
+      <strong>Workspace</strong>
+    </header>
+    <div class="layout">
+      <nav aria-label="Groups">
+        <a href="#all">All groups</a>
+        <a href="/demo/">Group A</a>
+        <a href="/demo/group-b.html">Group B</a>
+        <a href="/demo/group-c.html" aria-current="page">Group C</a>
+        <a href="#archive">Archive</a>
+        <button class="launch" id="launch" type="button">Launch Markly</button>
+      </nav>
+      <main>
+        <h1>Group C settings</h1>
+        <p class="sub">Last changed 5 days ago</p>
+        <form class="form" onsubmit="event.preventDefault()">
+          <div class="field">
+            <label for="name">Group name</label>
+            <input id="name" type="text" value="Group C" />
+          </div>
+          <div class="field">
+            <label for="desc">Description</label>
+            <textarea id="desc">Shared space for the quarterly review items.</textarea>
+            <p class="hint">Shown to everyone who can see the group.</p>
+          </div>
+          <fieldset class="field">
+            <legend>Visibility</legend>
+            <label class="choice"><input type="radio" name="vis" checked /><span>Members only<small>Only people in the group see its items.</small></span></label>
+            <label class="choice"><input type="radio" name="vis" /><span>Organisation<small>Anyone signed in can view; members can edit.</small></span></label>
+          </fieldset>
+          <div class="field">
+            <label for="owner">Default owner</label>
+            <select id="owner"><option>Alex Example</option><option>Sam Placeholder</option></select>
+          </div>
+          <!-- Fake contact number for masking checks. -->
+          <div class="field">
+            <label for="phone">Escalation phone</label>
+            <input id="phone" type="tel" value="+41 61 000 00 02" />
+          </div>
+          <div class="field">
+            <span class="field-title"><strong>Notifications</strong></span>
+            <label class="switch">New items <input type="checkbox" checked /></label>
+            <label class="switch">Status changes <input type="checkbox" checked /></label>
+            <label class="switch">Weekly digest <input type="checkbox" /></label>
+          </div>
+          <div class="danger-zone">
+            <p><strong>Archive this group.</strong> Items become read-only. You can restore it from Archive.</p>
+            <button type="button">Archive group</button>
+          </div>
+          <div class="save-bar">
+            <button type="button">Discard</button>
+            <button type="submit" class="primary">Save changes</button>
+          </div>
+        </form>
+        <p class="note">
+          Demo screen 3 of 3. Markly stays off until you click <strong>Launch Markly</strong>. In review mode, change screens from Markly’s screens dropdown or by clicking an entry from another screen.
+        </p>
+      </main>
+    </div>
+    <script type="module" src="/demo/demo.js"></script>
+  </body>
+</html>

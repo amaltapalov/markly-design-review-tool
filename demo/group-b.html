@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workspace · Group B (Markly demo host)</title>
+    <link rel="stylesheet" href="/demo/demo.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="logo" aria-hidden="true"></div>
+      <strong>Workspace</strong>
+    </header>
+    <div class="layout">
+      <nav aria-label="Groups">
+        <a href="#all">All groups</a>
+        <a href="/demo/">Group A</a>
+        <a href="/demo/group-b.html" aria-current="page">Group B</a>
+        <a href="/demo/group-c.html">Group C</a>
+        <a href="#archive">Archive</a>
+        <button class="launch" id="launch" type="button">Launch Markly</button>
+      </nav>
+      <main>
+        <h1>Group B</h1>
+        <p class="sub">6 members · 2 invitations pending</p>
+        <div class="tabs">
+          <a href="#overview">Overview</a>
+          <a href="#members" aria-current="page">Members</a>
+          <a href="#activity">Activity</a>
+        </div>
+        <section class="stats" aria-label="Summary">
+          <div class="stat"><span>Active members</span><strong>6</strong><small>+2 this month</small></div>
+          <div class="stat"><span>Open items</span><strong>14</strong><small>3 due this week</small></div>
+          <div class="stat"><span>Avg. response</span><strong>1.4 d</strong><small>−0.3 d vs last month</small></div>
+        </section>
+        <div class="tools">
+          <input type="search" placeholder="Search members" aria-label="Search members" />
+          <button type="button">All roles</button>
+          <button type="button">Invite member</button>
+        </div>
+        <!-- Fake people for demo and masking checks. Not real names or numbers. -->
+        <div class="cards">
+          <article class="card">
+            <header><span class="avatar">AE</span><div><h3 data-pii>Alex Example</h3><p>alex.example@example.test</p></div></header>
+            <span class="role">Owner</span>
+            <label><input type="checkbox" checked /> Selected</label>
+          </article>
+          <article class="card">
+            <header><span class="avatar">SP</span><div><h3 data-pii>Sam Placeholder</h3><p>sam.placeholder@example.test</p></div></header>
+            <span class="role">Editor</span>
+            <label><input type="checkbox" checked /> Selected</label>
+          </article>
+          <article class="card">
+            <header><span class="avatar">RT</span><div><h3 data-pii>Robin Test</h3><p>+41 61 000 00 01</p></div></header>
+            <span class="role">Viewer</span>
+            <label><input type="checkbox" /> Selected</label>
+          </article>
+          <article class="card">
+            <header><span class="avatar">JD</span><div><h3 data-pii>Jo Demo</h3><p>Invitation pending</p></div></header>
+            <span class="role">Editor</span>
+            <label><input type="checkbox" /> Selected</label>
+          </article>
+          <article class="card">
+            <header><span class="avatar">KS</span><div><h3 data-pii>Kim Sample</h3><p>Invitation pending</p></div></header>
+            <span class="role">Viewer</span>
+            <label><input type="checkbox" /> Selected</label>
+          </article>
+          <article class="card">
+            <header><span class="avatar">LM</span><div><h3 data-pii>Lee Mock</h3><p>lee.mock@example.test</p></div></header>
+            <span class="role">Viewer</span>
+            <label><input type="checkbox" /> Selected</label>
+          </article>
+        </div>
+        <div class="bulk" role="region" aria-label="Bulk actions">
+          <span>2 members selected</span>
+          <button type="button" class="danger">Remove from group</button>
+          <button type="button">Change role</button>
+          <button type="button">Cancel</button>
+        </div>
+        <p class="note">
+          Demo screen 2 of 3. Markly stays off until you click <strong>Launch Markly</strong>. In review mode, change screens from Markly’s screens dropdown or by clicking an entry from another screen.
+        </p>
+      </main>
+    </div>
+    <script type="module" src="/demo/demo.js"></script>
+  </body>
+</html>

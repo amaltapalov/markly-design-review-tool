@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Workspace · Group A (Markly demo host)</title>
+    <link rel="stylesheet" href="/demo/demo.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="logo" aria-hidden="true"></div>
+      <strong>Workspace</strong>
+    </header>
+    <div class="layout">
+      <nav aria-label="Groups">
+        <a href="#all">All groups</a>
+        <a href="/demo/" aria-current="page">Group A</a>
+        <a href="/demo/group-b.html">Group B</a>
+        <a href="/demo/group-c.html">Group C</a>
+        <a href="#archive">Archive</a>
+        <button class="launch" id="launch" type="button">Launch Markly</button>
+      </nav>
+      <main>
+        <h1>Group A</h1>
+        <p class="sub">7 items · last updated 2 hours ago</p>
+        <!-- Fake personal data for masking checks (D3). Not real people or numbers. -->
+        <p class="owner">
+          Owner: <span data-pii>Jane Example</span> · jane.example@example.test · +41 61 000 00 00
+          <label>Contact email <input type="email" value="team@example.test" /></label>
+        </p>
+        <div class="tools">
+          <input type="search" placeholder="Search items" aria-label="Search items" />
+          <button type="button" onclick="alert('Host button clicked')">All states</button>
+          <button type="button">All participants</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Attribute</th><th>Metric A</th><th>State</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Item 01</td><td>Value A</td><td>128</td><td><span class="state-pill">Ready</span></td></tr>
+            <tr><td>Item 02</td><td>Value B</td><td>64</td><td><span class="state-pill">Pending</span></td></tr>
+            <tr><td>Item 03</td><td>Value A</td><td>512</td><td><span class="state-pill">Blocked</span></td></tr>
+            <tr><td>Item 04</td><td>Value C</td><td>96</td><td><span class="state-pill">Ready</span></td></tr>
+            <tr><td>Item 05</td><td>Value B</td><td>240</td><td><span class="state-pill">Pending</span></td></tr>
+            <tr><td>Item 06</td><td>Value A</td><td>32</td><td><span class="state-pill">Ready</span></td></tr>
+            <tr><td>Item 07</td><td>Value C</td><td>176</td><td><span class="state-pill">Draft</span></td></tr>
+          </tbody>
+        </table>
+        <details class="pii">
+          <summary>More fake PII fields (masking checks)</summary>
+          <label>Patient name <input data-pii value="Jane Example" /></label>
+          <label>Password <input type="password" value="not-a-real-password" /></label>
+        </details>
+        <p class="note">
+          Demo host page. Launch with the button, <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>, or <code>?review</code> in the URL.
+          While targeting, hold <kbd>Alt</kbd> to use the page normally.
+        </p>
+      </main>
+    </div>
+    <script type="module" src="/demo/demo.js"></script>
+  </body>
+</html>
